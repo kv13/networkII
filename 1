@@ -1,0 +1,31 @@
+import java.io.*;
+import java.net.*;
+
+
+
+public class userDatagram{
+	public static void main(String[] args)throws Exception{
+		DatagramSocket s=new DatagramSocket();
+		String packetInfo="E4252\r";
+		byte[] txbuffer=packetInfo.getBytes();
+		int serverPort=38032;
+		byte[] hostIP={(byte)155,(byte)207,(byte)18,(byte)208};
+		InetAddress hostAddress=InetAddress.getByAddress(hostIP);
+		DatagramPacket p=new DatagramPacket(txbuffer,txbuffer.length,hostAddress,serverPort);
+		s.send(p);
+		int clientPort=48032;
+		DatagramSocket r=new DatagramSocket(clientPort);
+		r.setSoTimeout(8000);
+		byte[] rxbuffer=new byte[2048];
+		DatagramPacket q=new DatagramPacket(rxbuffer,rxbuffer.length);
+		for(;;){
+			try{
+				r.receive(q);
+				String message=new String(rxbuffer,0,q.getLength());
+				System.out.println(message);
+			}catch(Exception x){
+				System.out.println(x);
+			}
+		}
+	}
+}
