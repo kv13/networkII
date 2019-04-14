@@ -1,0 +1,54 @@
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+
+public class ImageReq{
+	public static void main(String[] args)throws Exception{
+		DatagramSocket s=new DatagramSocket();
+		String imageReq="M8317\r";
+		byte[] txbuffer=imageReq.getBytes();
+		int serverPort=38002;
+		byte[] hostIP={(byte)155,(byte)207,18,(byte)208};
+		InetAddress hostAddress=InetAddress.getByAddress(hostIP);
+		DatagramPacket p=new DatagramPacket(txbuffer,txbuffer.length,hostAddress,serverPort);
+		int clientPort=48002 ;
+		DatagramSocket r=new DatagramSocket(clientPort);
+		r.setSoTimeout(8000);
+		byte[] rxbuffer=new byte[4096];
+		DatagramPacket q=new DatagramPacket(rxbuffer,rxbuffer.length);
+		List<Byte> received_packet=new ArrayList<Byte>();
+		File image=new File("Image.jpg");
+		FileOutputStream image_stream=null;
+		int image_pointer=0;
+		try{
+			image_stream=new FileOutputStream(image);
+		}catch (Exception x){
+			System.out.println("Cannot open the file ");
+			System.exit(1);
+		}
+		s.send(p);
+		for(;;){
+			try{
+				r.receive(q);
+				for(int i=0;i<q.getLength();i++){
+					received_packet.add(q.getData()[i]);
+				}
+				image_pointer=image_pointer+q.getLength();
+				if(received_packet.get(image_pointer-1)==(byte)217 && received_packet.get(image_pointer-2)==(byte)255){
+					byte[] array=new byte[received_packet.size()];
+					for(int i=0;i<received_packet.size();i++){
+						array[i]=received_packet.get(i);
+					}
+					image_stream.write(array,0,received_packet.size());
+					image_stream.flush();
+					image_stream.close();
+					break; 
+				}
+			}catch (Exception x){
+				System.out.println(x);
+			}
+		}
+		System.out.println("FINISHHHHH");
+	}
+}
